@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>کافه فلکس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  @font-face{
+    font-family:'Vazirmatn';
+    src: url('fonts/Vazirmatn-Variable.woff2') format('woff2 supports variations'),
+         url('fonts/Vazirmatn-Variable.woff2') format('woff2-variations'),
+         url('fonts/Vazirmatn-Variable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+</style>
+<style>
+  :root{
+    --bg:#F7EEDD;
+    --card:#FFFBF2;
+    --ink:#33261C;
+    --ink-soft:#7A6A57;
+    --tray:#E7D6B3;
+    --tray-edge:#D8C296;
+    --primary:#3C2A21;
+    --primary-ink:#FFF7EA;
+    --accent:#4F9D82;
+    --accent-soft:#E1F0E9;
+    --warn:#C97B84;
+    --warn-soft:#F7E7E9;
+    --line:#E7D9BC;
+    --gold:#C89B3C;
+    --cup1:#C98A4B;
+    --cup2:#C97B84;
+    --cup3:#6E9FBF;
+    --cup4:#D9A441;
+    --cup5:#8FAE7A;
+    --radius:20px;
+    --radius-sm:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Vazirmatn', Tahoma, sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 14px;
+  }
+  .app{ width:100%; max-width:460px; }
+  header{ text-align:center; margin-bottom:16px; }
+  .logo{ display:inline-flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .logo-cup{ width:22px;height:26px; background:var(--primary); border-radius:4px 4px 10px 10px; position:relative; }
+  .logo-cup::after{ content:""; position:absolute; left:-8px; top:20%; width:9px;height:50%; border:3px solid var(--primary); border-left:none; border-radius:0 8px 8px 0; }
+  h1{ font-size:26px; font-weight:800; margin:0; }
+  .subtitle{ color:var(--ink-soft); font-size:14px; margin-top:4px; }
+
+  .statusbar{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:14px; }
+  .stars{ font-size:13px; font-weight:600; color:var(--gold); background:#FBF1DC; border:1px solid #EBD9A8; padding:5px 11px; border-radius:20px; }
+  .dots{ display:flex; gap:5px; flex-wrap:wrap; max-width:220px; justify-content:center; }
+  .dot{ width:8px;height:8px; border-radius:50%; background:transparent; border:2px solid var(--tray-edge); transition:.2s; }
+  .dot.done{ background:var(--accent); border-color:var(--accent); }
+  .dot.current{ border-color:var(--primary); transform:scale(1.3); }
+  .dot.quiz{ border-radius:2px; }
+
+  .card{ background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:0 6px 20px rgba(51,38,28,.08); border:1px solid var(--line); }
+
+  /* --- chapter --- */
+  .mentor-row{ display:flex; gap:10px; align-items:flex-start; margin-bottom:16px; }
+  .avatar{ width:38px;height:38px; border-radius:50%; background:var(--primary); color:var(--primary-ink); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; }
+  .mentor-bubble{ background:#F3E7CF; border-radius:14px; border-top-right-radius:4px; padding:12px 14px; font-size:14px; line-height:1.9; }
+  .chapter-title{ font-size:19px; font-weight:800; margin-bottom:10px; }
+  .codes-preview{ margin-bottom:16px; }
+  .codes-preview-label{ font-size:12px; color:var(--ink-soft); display:block; margin-bottom:6px; }
+  .code-pills{ display:flex; flex-wrap:wrap; gap:6px; }
+  .code-pill{ direction:ltr; font-family:'SFMono-Regular', Menlo, Consolas, monospace; font-size:11px; background:#2A1D15; color:#9FD8BE; border-radius:8px; padding:5px 9px; }
+
+  /* --- order bubble --- */
+  .order-bubble{ background:var(--primary); color:var(--primary-ink); padding:14px 16px; border-radius:16px; border-bottom-right-radius:4px; font-size:14.5px; line-height:1.9; margin-bottom:16px; }
+  .order-label{ font-size:12px; color:#D9C9B8; margin-bottom:3px; display:flex; justify-content:space-between; gap:8px; }
+
+  .tray-caption{ font-size:12.5px; color:var(--ink-soft); text-align:center; margin-bottom:8px; }
+  .tray-caption b{ color:var(--ink); font-weight:600; }
+
+  .tray-wrap{ position:relative; background:var(--tray); border-radius:16px; border:1px solid var(--tray-edge); box-shadow:inset 0 2px 10px rgba(51,38,28,.18); height:230px; margin:0 auto 14px auto; overflow:hidden; }
+  .layer{ position:absolute; inset:0; display:flex; padding:16px; }
+  .ghost-layer .cup{ background:transparent !important; border:2px dashed var(--ink-soft); box-shadow:none !important; opacity:.5; }
+  .ghost-layer .cup::after{ border-color: var(--ink-soft) !important; }
+  .ghost-layer .badge{ background:transparent; border:1.5px dashed var(--ink-soft); color:var(--ink-soft); }
+  .real-layer{ z-index:2; }
+
+  .cup{ width:42px; border-radius:6px 6px 16px 16px; box-shadow:0 3px 6px rgba(51,38,28,.28); position:relative; transition:flex-basis .3s, transform .25s, width .3s; }
+  .cup.h-s{ height:48px; } .cup.h-m{ height:68px; } .cup.h-l{ height:90px; }
+  .cup::after{ content:""; position:absolute; left:-10px; top:22%; width:13px;height:46%; border:4px solid currentColor; border-left:none; border-radius:0 10px 10px 0; opacity:.85; }
+  .badge{ position:absolute; top:-9px; left:50%; transform:translateX(-50%); width:17px;height:17px; border-radius:50%; background:#fff; color:var(--ink); font-size:9.5px; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .crown{ position:absolute; top:-24px; left:50%; transform:translateX(-50%); font-size:14px; }
+  .cup.vip{ cursor:pointer; }
+  .cup.vip.pulse{ animation:vipPulse 1.2s ease-in-out infinite; }
+  @keyframes vipPulse{ 0%,100%{ filter:drop-shadow(0 0 0 rgba(200,155,60,0)); } 50%{ filter:drop-shadow(0 0 6px rgba(200,155,60,.9)); } }
+  .solved .real-layer .cup{ animation:pop .5s ease; }
+  @keyframes pop{ 0%{ transform:scale(1); } 40%{ transform:scale(1.12); } 100%{ transform:scale(1); } }
+
+  .vip-callout{ background:var(--accent-soft); color:#2F6B54; border-radius:12px; padding:10px 12px; font-size:12.5px; text-align:center; margin-bottom:14px; }
+
+  .group{ margin-bottom:14px; }
+  .group-label{ font-size:12.5px; color:var(--ink-soft); margin-bottom:7px; font-weight:500; }
+  .group-label.special{ color:#8A6A1E; }
+  .chips{ display:flex; flex-wrap:wrap; gap:7px; }
+  .chip{ background:#fff; border:1.5px solid var(--line); color:var(--ink); border-radius:11px; padding:8px 12px; font-family:inherit; font-size:13px; cursor:pointer; text-align:center; line-height:1.5; transition:.15s; }
+  .chip:hover{ border-color:var(--primary); }
+  .chip:active{ transform:scale(.96); }
+  .chip small{ display:block; font-family:'SFMono-Regular', Menlo, Consolas, monospace; font-size:10px; color:var(--ink-soft); direction:ltr; margin-top:2px; }
+  .chip.active{ background:var(--primary); border-color:var(--primary); color:var(--primary-ink); }
+  .chip.active small{ color:#D9C9B8; }
+  .chip.special-chip.active{ background:var(--gold); border-color:var(--gold); color:#3A2C08; }
+
+  .code-toggle{ background:none; border:none; color:var(--ink-soft); font-size:12.5px; text-decoration:underline dotted; cursor:pointer; padding:4px 0; font-family:inherit; }
+  .code-box{ display:none; margin-top:8px; }
+  .code-box.show{ display:block; }
+  .code-input{ width:100%; direction:ltr; text-align:left; font-family:'SFMono-Regular', Menlo, Consolas, monospace; font-size:12.5px; background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:10px; resize:vertical; min-height:52px; }
+  .code-apply{ margin-top:6px; background:var(--gold); color:#3A2C08; border:none; border-radius:9px; padding:7px 12px; font-size:12.5px; font-weight:600; cursor:pointer; }
+
+  .code-panel{ background:#2A1D15; color:#EDE0CC; border-radius:var(--radius-sm); padding:14px 16px; font-family:'SFMono-Regular', Menlo, Consolas, monospace; font-size:12.5px; direction:ltr; text-align:left; line-height:1.7; margin:14px 0; white-space:pre; overflow-x:auto; }
+  .code-panel .prop{ color:#9FD8BE; } .code-panel .val{ color:#E7B978; }
+
+  .actions{ display:flex; gap:10px; align-items:center; }
+  .btn{ border:none; border-radius:12px; padding:12px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; transition:.1s; }
+  .btn:active{ transform:scale(.97); }
+  .btn-primary{ background:var(--primary); color:var(--primary-ink); flex:1; }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); border:1.5px solid var(--line); }
+  .btn-success{ background:var(--accent); color:#fff; flex:1; }
+
+  .feedback{ margin-top:12px; padding:12px 14px; border-radius:12px; font-size:13.5px; line-height:1.85; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.ok{ background:var(--accent-soft); color:#2F6B54; }
+  .feedback.no{ background:var(--warn-soft); color:#8C4A52; }
+  .feedback .star-line{ margin-top:6px; font-weight:700; color:#8A6A1E; }
+
+  .hint-text{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; display:none; line-height:1.8; }
+  .hint-text.show{ display:block; }
+
+  /* quiz */
+  .quiz-q{ font-size:15px; font-weight:600; margin-bottom:14px; line-height:1.9; }
+  .quiz-opt{ display:block; width:100%; text-align:right; background:#fff; border:1.5px solid var(--line); border-radius:12px; padding:11px 14px; margin-bottom:8px; font-family:inherit; font-size:13.5px; cursor:pointer; }
+  .quiz-opt.correct{ background:var(--accent-soft); border-color:var(--accent); }
+  .quiz-opt.wrong{ background:var(--warn-soft); border-color:var(--warn); }
+  .quiz-explain{ margin-top:10px; font-size:13px; color:var(--ink-soft); line-height:1.8; background:#F3E7CF; border-radius:10px; padding:10px 12px; display:none; }
+  .quiz-explain.show{ display:block; }
+
+  .final{ text-align:center; padding:20px 6px; }
+  .final .logo-cup{ width:34px; height:40px; margin-bottom:10px; }
+  .final .logo-cup::after{ left:-12px; width:14px; border-width:4px; }
+  .final h2{ margin:6px 0 6px; font-size:20px; }
+  .final p{ color:var(--ink-soft); font-size:14px; line-height:1.9; margin-bottom:8px; }
+  .final .stars-final{ font-size:22px; margin:14px 0; color:var(--gold); font-weight:800; }
+
+  .credit{ text-align:center; margin-top:18px; font-size:10.5px; color:var(--tray-edge); }
+  .credit a{ color:var(--tray-edge); text-decoration:none; }
+  .credit a:hover{ color:var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><div class="logo-cup"></div><h1>کافه فلکس</h1></div>
+    <div class="subtitle">یاد گرفتن Flexbox، یک روز کاری کامل در کافه</div>
+    <div class="statusbar">
+      <div class="dots" id="dots"></div>
+      <div class="stars" id="starBadge">⭐ ۰</div>
+    </div>
+  </header>
+  <div class="card" id="gameCard"></div>
+  <div class="credit">ساخته‌ی متین · <a href="https://github.com/matinmovafagh1379-gif" target="_blank" rel="noopener">GitHub</a></div>
+</div>
+
+<script>
+/* ---------- content data ---------- */
+
+const PROP_META = {
+  flexDirection: { label:"جهت چیدمان", css:"flex-direction",
+    options:[ {v:"row",fa:"ردیف"}, {v:"row-reverse",fa:"ردیف معکوس"}, {v:"column",fa:"ستون"}, {v:"column-reverse",fa:"ستون معکوس"} ] },
+  justifyContent: { label:"چیدمان افقیِ اصلی", css:"justify-content",
+    options:[ {v:"flex-start",fa:"ابتدا"}, {v:"center",fa:"وسط"}, {v:"flex-end",fa:"انتها"}, {v:"space-between",fa:"فاصله مساوی بین"}, {v:"space-around",fa:"فاصله مساوی دور"} ] },
+  alignItems: { label:"هم‌ترازی عمودی همه", css:"align-items",
+    options:[ {v:"flex-start",fa:"ابتدا"}, {v:"center",fa:"وسط"}, {v:"flex-end",fa:"انتها"} ] },
+  gap: { label:"فاصله بین فنجون‌ها", css:"gap",
+    options:[ {v:0,fa:"۰ پیکسل"}, {v:8,fa:"۸ پیکسل"}, {v:12,fa:"۱۲ پیکسل"}, {v:16,fa:"۱۶ پیکسل"} ] },
+  flexWrap: { label:"شکست خط", css:"flex-wrap",
+    options:[ {v:"nowrap",fa:"بدون شکست"}, {v:"wrap",fa:"شکستن به خط بعد"} ] },
+};
+
+const SPECIAL_META = {
+  align: { label:"هم‌ترازی ویژه‌ی این فنجون", css:"align-self",
+    options:[ {v:"flex-start",fa:"ابتدا"}, {v:"center",fa:"وسط"}, {v:"flex-end",fa:"انتها"} ] },
+  order: { label:"ترتیب ویژه‌ی این فنجون", css:"order",
+    options:[ {v:-1,fa:"اول از همه"}, {v:0,fa:"ترتیب عادی"}, {v:1,fa:"یکی بعدتر"}, {v:2,fa:"دوتا بعدتر"} ] },
+  grow: { label:"رشد این فنجون", css:"flex-grow",
+    options:[ {v:0,fa:"اندازه‌ی عادی"}, {v:1,fa:"بزرگ شو و جا رو پر کن"} ] },
+};
+
+const DEFAULT_VALUES = { flexDirection:"row", justifyContent:"flex-start", alignItems:"flex-start", gap:0, flexWrap:"nowrap" };
+const CUP_COLORS = ["var(--cup1)","var(--cup2)","var(--cup3)","var(--cup4)","var(--cup5)"];
+
+const SUCCESS_LINES = [
+  "مشتری ذوق کرد: «وای، دقیقاً همینو می‌خواستم!» ☕✨",
+  "یه لبخند رضایت رو لب مشتری نشست. حتی فنجونش هم داره لبخند می‌زنه.",
+  "استاد متین از پشت سرت سری تکون داد: «آفرین، همینه. شاید یه روز جای من بشینی.»",
+  "مشتری فنجون رو برداشت: «کافه‌تون همیشه همینطور مرتبه؟»",
+  "صدای تشویق آروم استاد متین رو می‌شنوی: «دستت درد نکنه! حالا فقط ۹۹ سفارش دیگه مونده.»",
+  "یه فنجون از خوشحالی تقریباً می‌رقصه توی سینی. تقریباً.",
+  "استاد متین زیر لب می‌گه: «CSS همینه دیگه، یه روز عاشقشی یه روز ازش فراری.»",
+];
+const FAIL_LINES = [
+  "مشتری یه نگاه به سینی انداخت: «نه... دقیقاً این نبود.»",
+  "استاد متین آروم گفت: «نزدیکی، به خط‌چین‌ها دقت کن. نه اونقدری که فکرشو می‌کنی، نه اونقدری که امیدشو داری.»",
+  "یه فنجون رفت جایی که نباید می‌رفت. حداقل نریخت، این یعنی پیشرفت.",
+  "چیزی همخونی نداره — چیدمان الان با سفارش مشتری فرق داره. مثل سفارش دادن قهوه‌ی تلخ و گرفتن شیرین.",
+  "استاد متین دستشو رو صورتش می‌گذاره: «یه بار دیگه، این‌بار با فکر بیشتر و کلیک کمتر.»",
+];
+
+const STEPS = [
+  { type:"chapter", title:"روز اول کاری", avatar:"م", codes:["justify-content"],
+    text:"امروز اولین روزته توی «کافه فلکس». استاد متین، باریستای ارشد، یه دستمال می‌ندازه رو شونه‌ش و می‌گه: «نگران نباش، فقط باید یاد بگیری چطور فنجون‌ها رو توی سینی بچینی؛ نه بمب اتم دستشه که ترکیدنش بترسی. امروز فقط با یه دستور کار داریم: justify-content. یعنی می‌خوایم بگیم فنجون‌ها روی محور افقی کجا بشینن — اول، وسط، آخر، یا با فاصله. هر فنجون هم یه شماره داره روش تا گم نشیم، چون من حافظه‌م اندازه‌ی یه فنجون کوچیکه.»" },
+
+  { type:"level", customer:"مریم", cups:3, sizes:null,
+    story:"«فنجون‌ها رو وسط سینی بچین، لطفاً.»",
+    unlocked:["justifyContent"], target:{justifyContent:"center"},
+    hint:"دنبال گروه «چیدمان افقی» بگرد و «وسط» رو بزن." },
+
+  { type:"level", customer:"کامران", cups:4, sizes:null,
+    story:"«فنجون‌ها رو ته سینی بچین، عجله دارم!»",
+    unlocked:["justifyContent"], target:{justifyContent:"flex-end"},
+    hint:"«ته سینی» یعنی انتهای محور افقی." },
+
+  { type:"level", customer:"دوقلوهای رستمی", cups:4, sizes:null,
+    story:"«ما دوتایی سفارش دادیم، بین فنجون‌ها فاصله‌ی مساوی بذار، ولی گوشه‌ها بهم بچسبن.»",
+    unlocked:["justifyContent"], target:{justifyContent:"space-between"},
+    hint:"فاصله فقط بین فنجون‌هاست، نه لبه‌ها." },
+
+  { type:"level", customer:"خانم صادقی", cups:5, sizes:null,
+    story:"«فاصله رو یکنواخت دور همه‌شون بذار، حتی لبه‌ها.»",
+    unlocked:["justifyContent"], target:{justifyContent:"space-around"},
+    hint:"این‌بار لبه‌ها هم فاصله دارن، نه فقط وسط." },
+
+  { type:"quiz", title:"چای‌خوری استراحت ☕",
+    question:"کدوم مقدار justify-content باعث می‌شه فاصله فقط بین فنجون‌ها باشه، نه بین فنجون و لبه‌ی سینی؟",
+    options:[ {t:"center", correct:false}, {t:"space-between", correct:true}, {t:"space-around", correct:false} ],
+    explain:"space-between فاصله رو فقط بین آیتم‌ها می‌گذاره؛ اولین و آخرین فنجون دقیقاً کنار لبه‌ها می‌نشینن." },
+
+  { type:"chapter", title:"روز دوم: قدهای نامساوی", avatar:"م", codes:["justify-content","align-items"],
+    text:"استاد متین یه فنجون قد بلند و یکی قد کوتاه می‌گذاره جلوت: «امروز مشتری‌هایی میان که سفارشاشون قد و قواره‌ی همدیگه نیستن، درست مثل من و رئیسم. برای هم‌تراز کردنشون از بالا/وسط/پایین، یه دستور جدید داریم: align-items. این یکی رو محور عمودی کار می‌کنه، برعکس justify-content که دیروز یاد گرفتی. اگه قاطیشون کنی، فنجون‌ها هم مثل من قاطی می‌شن.»" },
+
+  { type:"level", customer:"بابک", cups:4, sizes:["s","l","m","s"],
+    story:"«فنجون‌های قدشون فرق داره؛ همه رو از وسط، هم‌تراز کن.»",
+    unlocked:["justifyContent","alignItems"], target:{justifyContent:"center", alignItems:"center"},
+    hint:"برای هم‌ترازی از بالا/پایین به گروه «هم‌ترازی عمودی» نگاه کن." },
+
+  { type:"level", customer:"خانم توکلی", cups:4, sizes:["m","s","l","m"],
+    story:"«از پایینِ سینی هم‌تراز کن، ولی از ابتدا بچینشون.»",
+    unlocked:["justifyContent","alignItems"], target:{justifyContent:"flex-start", alignItems:"flex-end"},
+    hint:"«هم‌ترازی عمودی» رو روی انتها بذار تا همه از کف سینی بچسبن." },
+
+  { type:"level", mechanic:"align", vipIndex:2, cups:4, sizes:null,
+    customer:"سرمایه‌گذار مو سفید", vipTarget:"center",
+    story:"«همه‌ی فنجون‌ها همون‌جا که هستن بمونن، ولی فنجون شماره‌ی ۳ — همون که تاج داره — رو جدا از بقیه، از وسط بچین.»",
+    unlocked:["justifyContent","alignItems"], target:{justifyContent:"flex-start", alignItems:"flex-start"},
+    hint:"اول روی فنجون تاج‌دار (👑) کلیک کن، بعد گروه ویژه‌ش ظاهر می‌شه." },
+
+  { type:"chapter", title:"روز سوم: چرخش و ترتیب", avatar:"م", codes:["flex-direction","order"],
+    text:"استاد متین سینی رو ۹۰ درجه می‌چرخونه و تقریباً قهوه‌ها می‌ریزن: «حالا وقتشه سینی رو بچرخونیم! با flex-direction می‌تونی بگی چیدمان افقی باشه یا عمودی، معمولی باشه یا برعکس. یه نکته‌ی مهم: وقتی می‌چرخونی، همون justify-content دیروزی هم جهتش عوض می‌شه — دیگه راست‌وچپ نیست، بالاوپایینه. یه نفر هم امروز میاد که می‌خواد بدون به‌هم‌ریختن صف، زودتر از بقیه سرویس بشه؛ اونجا با order آشنا می‌شی. مثل وقتیه که یکی وسط صف نون میگه من زودتر بودم.»" },
+
+  { type:"level", customer:"آقای فرهادی", cups:3, sizes:null,
+    story:"«سینی رو بچرخون، فنجون‌ها رو عمودی از بالا به پایین بچین.»",
+    unlocked:["justifyContent","alignItems","flexDirection"], target:{flexDirection:"column", justifyContent:"flex-start", alignItems:"flex-start"},
+    hint:"«جهت چیدمان» رو روی «ستون» بذار." },
+
+  { type:"level", customer:"نگار", cups:3, sizes:null,
+    story:"«عمودی بچین، ولی این‌بار از وسط هم‌تراز کن.»",
+    unlocked:["justifyContent","alignItems","flexDirection"], target:{flexDirection:"column", justifyContent:"center", alignItems:"flex-start"},
+    hint:"جهت روی ستون بمونه، فقط چیدمان افقی اصلی رو عوض کن." },
+
+  { type:"level", customer:"مشتری عجیب", cups:4, sizes:null,
+    story:"«می‌خوام دقیقاً برعکس ترتیب همیشگی سرویس بشم؛ فنجون ۴ باید اول باشه، فنجون ۱ آخر.» (به شماره‌های روی فنجون‌ها نگاه کن!)",
+    unlocked:["justifyContent","alignItems","flexDirection"], target:{flexDirection:"row-reverse", justifyContent:"flex-start", alignItems:"flex-start"},
+    hint:"یکی از گزینه‌های «جهت چیدمان» دقیقاً برعکسِ ردیف معمولیه — به شماره‌ها روی خط‌چین دقت کن." },
+
+  { type:"quiz", title:"چای‌خوری استراحت ☕",
+    question:"وقتی flex-direction رو column می‌کنی، محور اصلی (که justify-content روش اثر می‌ذاره) کدومه؟",
+    options:[ {t:"همیشه افقی می‌مونه", correct:false}, {t:"عمودی می‌شه", correct:true}, {t:"اصلاً فرقی نمی‌کنه", correct:false} ],
+    explain:"در column، محور اصلی می‌چرخه و می‌شه عمودی؛ پس justify-content دیگه بالا/پایین رو کنترل می‌کنه، نه راست/چپ." },
+
+  { type:"level", mechanic:"order", vipIndex:2, cups:4, sizes:null,
+    customer:"مشتری VIP باشگاه", vipTarget:-1,
+    story:"«من عضو ویژه‌ام، فنجون شماره‌ی ۳ باید اول از همه سرویس بشه، بدون این‌که جای فنجون‌های دیگه توی صف عوض شه.»",
+    unlocked:["justifyContent","alignItems","flexDirection"], target:{flexDirection:"row", justifyContent:"flex-start", alignItems:"flex-start"},
+    hint:"روی فنجون تاج‌دار کلیک کن و از گروه ویژه، «اول از همه» رو انتخاب کن — این کار order رو تغییر می‌ده." },
+
+  { type:"chapter", title:"روز چهارم: فاصله و اندازه", avatar:"م", codes:["gap","flex-wrap","flex-grow"],
+    text:"استاد متین یه نگاه به صف طولانی مشتری‌ها می‌اندازه و آه می‌کشه: «امروز کافه شلوغه، محشره. اول با gap یاد می‌گیری چطور بین فنجون‌ها یه فاصله‌ی شیک بذاری، نه اینکه بهم بچسبن مثل ماهی‌های کنسرو. بعد چون سینی امروز جا نداره، با flex-wrap یاد می‌گیری فنجون‌های اضافه رو بفرستی خط بعد. آخرش هم یه سفارش خانوادگی داریم که باید بزرگ شه و کل جای خالی رو با flex-grow پر کنه — مثل عمو که همیشه بیشتر از سهمش غذا می‌کشه.»" },
+
+  { type:"level", customer:"زوج جوان", cups:4, sizes:null,
+    story:"«فنجون‌ها رو وسط بچین، ولی یه فاصله‌ی ثابت و شیک هم بین‌شون بذار.»",
+    unlocked:["justifyContent","alignItems","flexDirection","gap"], target:{flexDirection:"row", justifyContent:"center", alignItems:"flex-start", gap:16},
+    hint:"یه گروه جدید به اسم «فاصله» اضافه شده — عدد ۱۶ رو انتخاب کن." },
+
+  { type:"level", customer:"گروه تور", cups:9, sizes:null, trayWidth:"230px",
+    story:"«امروز ۹ نفریم! هرجا سینی جا نشد، فنجون بره خط بعد.»",
+    unlocked:["justifyContent","alignItems","flexDirection","gap","flexWrap"], target:{flexDirection:"row", justifyContent:"flex-start", alignItems:"flex-start", gap:0, flexWrap:"wrap"},
+    hint:"گروه «شکست خط» رو پیدا کن و «شکستن به خط بعد» رو بزن." },
+
+  { type:"level", mechanic:"grow", vipIndex:1, cups:3, sizes:null,
+    customer:"سفارش خانوادگی بزرگ", vipTarget:1,
+    story:"«فنجون شماره‌ی ۲ سفارش خانوادگیه، باید بزرگ شه و هر جای خالی سینی رو پر کنه؛ باقی فنجون‌ها همون اندازه‌ی همیشگی بمونن.»",
+    unlocked:["justifyContent","alignItems","flexDirection","gap"], target:{flexDirection:"row", justifyContent:"flex-start", alignItems:"flex-start", gap:8},
+    hint:"روی فنجون تاج‌دار کلیک کن و «بزرگ شو و جا رو پر کن» رو بزن — این یعنی flex-grow." },
+
+  { type:"chapter", title:"روز پایانی: امتحان استادی", avatar:"م", codes:["flex-direction","justify-content","align-items","gap","flex-wrap"],
+    text:"استاد متین دستاش رو بهم می‌مالد: «خب رفیق، وقتشه ببینم واقعاً یاد گرفتی یا فقط شانسی روی دکمه‌ها می‌زدی. دو سفارش سخت مونده که همه‌ی چیزایی که این چهار روز یاد گرفتی رو با هم می‌خواد: جهت، چیدمان افقی، هم‌ترازی عمودی، فاصله، و شکست خط. اگه از پسش بربیای، دیگه رسماً می‌تونی بهم بگی همکار، نه فقط شاگرد.»" },
+
+  { type:"level", customer:"استاد متین (امتحان می‌کنه)", cups:4, sizes:null,
+    story:"«عمودی بچین، از وسط هم‌تراز کن، یه فاصله‌ی خوب هم بذار. اگه از پسش بربیای، رسمی میشی باریستای فلکس.»",
+    unlocked:["justifyContent","alignItems","flexDirection","gap","flexWrap"], target:{flexDirection:"column", justifyContent:"center", alignItems:"center", gap:12, flexWrap:"nowrap"},
+    hint:"سه چیزو با هم درست کن: جهت = ستون، افقی و عمودی = وسط، فاصله = ۱۲." },
+
+  { type:"level", customer:"سفارش فارغ‌التحصیلی", cups:8, sizes:null, trayWidth:"230px",
+    story:"«آخرین سفارش امروز: ترتیب رو کاملاً برعکس کن، بذار فنجون‌ها بشکنن به خط بعد، و یه فاصله‌ی کوچیک هم بینشون باشه.»",
+    unlocked:["justifyContent","alignItems","flexDirection","gap","flexWrap"], target:{flexDirection:"row-reverse", justifyContent:"flex-start", alignItems:"flex-start", gap:8, flexWrap:"wrap"},
+    hint:"جهت = ردیف معکوس، شکست خط = فعال، فاصله = ۸ — به شماره‌های روی فنجون‌ها دقت کن." },
+];
+
+/* ---------- state ---------- */
+let state = {
+  stepIndex:0,
+  values:{...DEFAULT_VALUES},
+  vipValue:null,
+  vipSelected:false,
+  solved:false,
+  lastCheckFailed:false,
+  showHint:false,
+  showCode:false,
+  usedCodeThisLevel:false,
+  totalStars:0,
+  starred:new Set(),
+  completed:new Set(),
+  feedbackMsg:"",
+  quizChoice:null,
+  quizFirstTry:true,
+};
+
+function resetForStep(){
+  state.values = {...DEFAULT_VALUES};
+  state.vipValue = null;
+  state.vipSelected = false;
+  state.solved = false;
+  state.lastCheckFailed = false;
+  state.showHint = false;
+  state.showCode = false;
+  state.usedCodeThisLevel = false;
+  state.feedbackMsg = "";
+  state.quizChoice = null;
+  state.quizFirstTry = true;
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ---------- rendering helpers ---------- */
+function renderDots(){
+  const dots = document.getElementById("dots");
+  dots.innerHTML = "";
+  STEPS.forEach((s, i) => {
+    if(s.type === "chapter") return;
+    const d = document.createElement("div");
+    d.className = "dot" + (s.type === "quiz" ? " quiz" : "") + (state.completed.has(i) ? " done" : "") + (i === state.stepIndex ? " current" : "");
+    dots.appendChild(d);
+  });
+  document.getElementById("starBadge").textContent = "⭐ " + toFa(state.totalStars);
+}
+
+function toFa(n){
+  const map = {"0":"۰","1":"۱","2":"۲","3":"۳","4":"۴","5":"۵","6":"۶","7":"۷","8":"۸","9":"۹"};
+  return String(n).split("").map(c => map[c] !== undefined ? map[c] : c).join("");
+}
+
+function cupSizeClass(level, i){
+  if(!level.sizes) return "h-m";
+  const map = {s:"h-s", m:"h-m", l:"h-l"};
+  return map[level.sizes[i]] || "h-m";
+}
+
+function buildCups(level, ghost){
+  let html = "";
+  for(let i=0;i<level.cups;i++){
+    const num = i+1;
+    const isVip = level.vipIndex !== undefined && i === level.vipIndex;
+    const color = CUP_COLORS[i % CUP_COLORS.length];
+    const sizeClass = cupSizeClass(level, i);
+    const crownHtml = isVip ? `<div class="crown">👑</div>` : "";
+    let extraStyle = "flex:0 0 42px;";
+    let cls = `cup ${sizeClass}` + (isVip ? " vip" : "");
+    let clickAttr = "";
+
+    if(ghost){
+      if(level.mechanic === "grow" && isVip && level.vipTarget === 1) extraStyle = "flex:1 1 70px;width:auto;";
+      if(level.mechanic === "align" && isVip) extraStyle += `align-self:${level.vipTarget};`;
+      if(level.mechanic === "order" && isVip) extraStyle += `order:${level.vipTarget};`;
+    } else {
+      if(level.mechanic === "grow" && isVip) extraStyle = state.vipValue === 1 ? "flex:1 1 70px;width:auto;" : "flex:0 0 42px;";
+      if(level.mechanic === "align" && isVip && state.vipValue) extraStyle += `align-self:${state.vipValue};`;
+      if(level.mechanic === "order" && isVip && state.vipValue !== null) extraStyle += `order:${state.vipValue};`;
+      if(level.mechanic && isVip){
+        clickAttr = `data-vip="1"`;
+        cls += " pulse";
+      }
+    }
+    const styleAttr = ghost ? `style="${extraStyle}"` : `style="background:${color};color:${color};${extraStyle}"`;
+    html += `<div class="${cls}" ${styleAttr} ${clickAttr}><span class="badge">${num}</span>${crownHtml}</div>`;
+  }
+  return html;
+}
+
+function trayStyle(values){
+  const gapVal = typeof values.gap === "number" ? values.gap : 0;
+  return `flex-direction:${values.flexDirection};justify-content:${values.justifyContent};align-items:${values.alignItems};gap:${gapVal}px;flex-wrap:${values.flexWrap};`;
+}
+
+function renderCode(level){
+  const lines = [`.<span class="prop">tray</span> {`, `  display: <span class="val">flex</span>;`];
+  level.unlocked.forEach(key => {
+    const meta = PROP_META[key];
+    const val = state.values[key];
+    const displayVal = key === "gap" ? `${val}px` : val;
+    lines.push(`  <span class="prop">${meta.css}</span>: <span class="val">${displayVal}</span>;`);
+  });
+  lines.push(`}`);
+  if(level.mechanic && state.vipValue !== null){
+    const sm = SPECIAL_META[level.mechanic];
+    lines.push(``, `.<span class="prop">cup-${level.vipIndex+1}</span> {`, `  <span class="prop">${sm.css}</span>: <span class="val">${state.vipValue}${level.mechanic==="grow"?"":""}</span>;`, `}`);
+  }
+  return lines.join("\n");
+}
+
+function checkMatch(level){
+  const baseOk = level.unlocked.every(key => state.values[key] === level.target[key]);
+  if(!level.mechanic) return baseOk;
+  return baseOk && state.vipValue === level.vipTarget;
+}
+
+function parseTypedCode(text){
+  const map = {"flex-direction":"flexDirection","justify-content":"justifyContent","align-items":"alignItems","gap":"gap","flex-wrap":"flexWrap"};
+  const result = {};
+  text.split(";").forEach(chunk => {
+    const idx = chunk.indexOf(":");
+    if(idx === -1) return;
+    const rawProp = chunk.slice(0, idx).trim().toLowerCase();
+    let rawVal = chunk.slice(idx+1).trim();
+    const key = map[rawProp];
+    if(!key) return;
+    if(key === "gap"){ rawVal = parseInt(rawVal); if(isNaN(rawVal)) return; }
+    result[key] = rawVal;
+  });
+  return result;
+}
+
+/* ---------- main render ---------- */
+function renderGame(){
+  const card = document.getElementById("gameCard");
+  const step = STEPS[state.stepIndex];
+
+  if(!step){
+    card.innerHTML = `
+      <div class="final">
+        <div class="logo-cup"></div>
+        <h2>تبریک، باریستای فلکس!</h2>
+        <p>استاد متین دستت رو می‌فشاره: «امروز واقعاً یاد گرفتی چطور با justify-content، align-items، flex-direction، gap و flex-wrap فنجون‌ها رو بچینی — حتی order و flex-grow رو هم امتحان کردی. حالا برو یه سایت واقعی بساز، و اگه یه‌جایی چیدمانت بهم ریخت، یادت بیاد امروز چند بار فنجون‌های خیالی رو جابه‌جا کردی.»</p>
+        <div class="stars-final">⭐ ${toFa(state.totalStars)} ستاره جمع کردی</div>
+        <button class="btn btn-primary" id="restartBtn">از اول شروع کن</button>
+        <div class="credit" style="margin-top:16px;">طراحی و توسعه: متین · <a href="https://github.com/matinmovafagh1379-gif" target="_blank" rel="noopener">GitHub</a></div>
+      </div>`;
+    document.getElementById("restartBtn").onclick = () => {
+      state = {stepIndex:0, values:{...DEFAULT_VALUES}, vipValue:null, vipSelected:false, solved:false, lastCheckFailed:false, showHint:false, showCode:false, usedCodeThisLevel:false, totalStars:0, starred:new Set(), completed:new Set(), feedbackMsg:"", quizChoice:null, quizFirstTry:true};
+      renderDots(); renderGame();
+    };
+    return;
+  }
+
+  if(step.type === "chapter"){ renderChapter(card, step); return; }
+  if(step.type === "quiz"){ renderQuiz(card, step); return; }
+  renderLevel(card, step);
+}
+
+function renderChapter(card, step){
+  const codesHtml = (step.codes || []).map(c => `<span class="code-pill">${c}</span>`).join("");
+  card.innerHTML = `
+    <div class="chapter-title">${step.title}</div>
+    <div class="mentor-row">
+      <div class="avatar">${step.avatar}</div>
+      <div class="mentor-bubble">${step.text}</div>
+    </div>
+    ${codesHtml ? `<div class="codes-preview"><span class="codes-preview-label">امروز با این‌ها کار داریم:</span><div class="code-pills">${codesHtml}</div></div>` : ""}
+    <div class="actions"><button class="btn btn-primary" id="goBtn">بزن بریم</button></div>
+  `;
+  document.getElementById("goBtn").onclick = () => { state.stepIndex += 1; resetForStep(); renderDots(); renderGame(); };
+}
+
+function renderQuiz(card, step){
+  let optsHtml = "";
+  step.options.forEach((opt, i) => {
+    let cls = "quiz-opt";
+    if(state.quizChoice !== null){
+      if(i === state.quizChoice && opt.correct) cls += " correct";
+      else if(i === state.quizChoice && !opt.correct) cls += " wrong";
+      else if(opt.correct) cls += " correct";
+    }
+    optsHtml += `<button class="${cls}" data-i="${i}">${opt.t}</button>`;
+  });
+
+  const answered = state.quizChoice !== null;
+  const correctChosen = answered && step.options[state.quizChoice].correct;
+
+  card.innerHTML = `
+    <div class="chapter-title">${step.title}</div>
+    <div class="quiz-q">${step.question}</div>
+    ${optsHtml}
+    <div class="quiz-explain ${answered ? "show":""}">${step.explain}${(correctChosen && state.quizFirstTry) ? `<div class="star-line">⭐ درست گفتی از اولین بار — یه ستاره گرفتی!</div>` : ""}</div>
+    <div class="actions" style="margin-top:14px;">
+      ${correctChosen ? `<button class="btn btn-success" id="nextBtn">ادامه</button>` : `<span style="color:var(--ink-soft);font-size:12.5px;">${answered ? "دوباره امتحان کن 🙂" : "یکی رو انتخاب کن"}</span>`}
+    </div>
+  `;
+
+  card.querySelectorAll(".quiz-opt").forEach(btn => {
+    btn.onclick = () => {
+      const i = Number(btn.dataset.i);
+      if(state.quizChoice !== null && step.options[state.quizChoice].correct) return;
+      if(state.quizChoice !== null) state.quizFirstTry = false;
+      state.quizChoice = i;
+      if(step.options[i].correct && state.quizFirstTry && !state.starred.has(state.stepIndex)){
+        state.starred.add(state.stepIndex);
+        state.totalStars += 1;
+      }
+      renderDots();
+      renderGame();
+    };
+  });
+
+  const nextBtn = document.getElementById("nextBtn");
+  if(nextBtn) nextBtn.onclick = () => {
+    state.completed.add(state.stepIndex);
+    state.stepIndex += 1;
+    resetForStep();
+    renderDots();
+    renderGame();
+  };
+}
+
+function renderLevel(card, level){
+  const trayWidthStyle = level.trayWidth ? `max-width:${level.trayWidth};` : "";
+  const solvedClass = state.solved ? "solved" : "";
+  const isLast = state.stepIndex === STEPS.length - 1;
+
+  let groupsHtml = "";
+  level.unlocked.forEach(key => {
+    const meta = PROP_META[key];
+    let chips = "";
+    meta.options.forEach(opt => {
+      const isActive = state.values[key] === opt.v;
+      const displayVal = key === "gap" ? `${opt.v}px` : opt.v;
+      chips += `<button class="chip ${isActive ? "active":""}" data-prop="${key}" data-val="${opt.v}">${opt.fa}<small>${displayVal}</small></button>`;
+    });
+    groupsHtml += `<div class="group"><div class="group-label">${meta.label}</div><div class="chips">${chips}</div></div>`;
+  });
+
+  let specialHtml = "";
+  let calloutHtml = "";
+  if(level.mechanic){
+    const sm = SPECIAL_META[level.mechanic];
+    let chips = "";
+    sm.options.forEach(opt => {
+      const isActive = state.vipValue === opt.v;
+      chips += `<button class="chip special-chip ${isActive ? "active":""}" data-special="${opt.v}">${opt.fa}<small>${sm.css}: ${opt.v}</small></button>`;
+    });
+    specialHtml = `<div class="group"><div class="group-label special">👑 فنجون شماره‌ی ${level.vipIndex+1} — ${sm.label}</div><div class="chips">${chips}</div></div>`;
+  }
+
+  let feedbackHtml = "";
+  if(state.solved){
+    const starLine = (state.usedCodeThisLevel && state.starred.has(state.stepIndex))
+      ? `<div class="star-line">⭐ چون خودت کد رو تایپ کردی، یه ستاره‌ی ویژه گرفتی!</div>` : "";
+    feedbackHtml = `<div class="feedback show ok">${state.feedbackMsg}${starLine}</div>`;
+  } else if(state.lastCheckFailed){
+    feedbackHtml = `<div class="feedback show no">${state.feedbackMsg}</div>`;
+  }
+
+  card.innerHTML = `
+    <div class="order-bubble">
+      <div class="order-label"><span>سفارش ${level.customer}</span></div>
+      ${level.story}
+    </div>
+
+    <div class="tray-caption">خط‌چین‌های زمینه، <b>چیدمان درخواستی</b> رو نشون می‌دن</div>
+
+    <div class="tray-wrap ${solvedClass}" style="${trayWidthStyle}margin-left:auto;margin-right:auto;">
+      <div class="layer ghost-layer" style="${trayStyle(level.target)}">${buildCups(level, true)}</div>
+      <div class="layer real-layer" style="${trayStyle(state.values)}">${buildCups(level, false)}</div>
+    </div>
+
+    ${calloutHtml}
+    ${groupsHtml}
+    ${specialHtml}
+
+    <button class="code-toggle" id="codeToggle">${state.showCode ? "بستن حالت کدنویسی ✍️" : "یا خودت کدشو بنویس (و ستاره بگیر) ✍️"}</button>
+    <div class="code-box ${state.showCode ? "show":""}">
+      <textarea class="code-input" id="codeInput" placeholder="justify-content: center; align-items: flex-end;"></textarea>
+      <button class="code-apply" id="codeApply">اعمال کد</button>
+    </div>
+
+    <div class="code-panel">${renderCode(level)}</div>
+
+    <div class="hint-text ${state.showHint ? "show":""}">💡 ${level.hint}</div>
+
+    <div class="actions" style="margin-top:12px;">
+      <button class="btn btn-ghost" id="hintBtn">راهنما</button>
+      ${state.solved
+        ? `<button class="btn btn-success" id="nextBtn">${isLast ? "پایان بازی" : "مرحله بعد"}</button>`
+        : `<button class="btn btn-primary" id="checkBtn">بررسی چیدمان</button>`}
+    </div>
+
+    ${feedbackHtml}
+  `;
+
+  card.querySelectorAll(".chip[data-prop]").forEach(btn => {
+    btn.onclick = () => {
+      const prop = btn.dataset.prop;
+      let val = btn.dataset.val;
+      if(prop === "gap") val = Number(val);
+      state.values[prop] = val;
+      state.solved = false;
+      state.lastCheckFailed = false;
+      renderGame();
+    };
+  });
+
+  card.querySelectorAll(".chip[data-special]").forEach(btn => {
+    btn.onclick = () => {
+      let val = btn.dataset.special;
+      if(level.mechanic === "order" || level.mechanic === "grow") val = Number(val);
+      state.vipValue = val;
+      state.solved = false;
+      state.lastCheckFailed = false;
+      renderGame();
+    };
+  });
+
+  card.querySelectorAll(".cup[data-vip]").forEach(el => {
+    el.onclick = () => { state.vipSelected = true; renderGame(); };
+  });
+
+  const hintBtn = document.getElementById("hintBtn");
+  if(hintBtn) hintBtn.onclick = () => { state.showHint = !state.showHint; renderGame(); };
+
+  const codeToggle = document.getElementById("codeToggle");
+  if(codeToggle) codeToggle.onclick = () => { state.showCode = !state.showCode; renderGame(); };
+
+  const codeApply = document.getElementById("codeApply");
+  if(codeApply) codeApply.onclick = () => {
+    const text = document.getElementById("codeInput").value;
+    const parsed = parseTypedCode(text);
+    let appliedAny = false;
+    level.unlocked.forEach(key => {
+      if(parsed[key] !== undefined){ state.values[key] = parsed[key]; appliedAny = true; }
+    });
+    if(appliedAny){ state.usedCodeThisLevel = true; }
+    state.solved = false;
+    state.lastCheckFailed = false;
+    renderGame();
+  };
+
+  const checkBtn = document.getElementById("checkBtn");
+  if(checkBtn) checkBtn.onclick = () => {
+    if(checkMatch(level)){
+      state.solved = true;
+      state.lastCheckFailed = false;
+      state.feedbackMsg = pick(SUCCESS_LINES);
+      state.completed.add(state.stepIndex);
+      if(state.usedCodeThisLevel && !state.starred.has(state.stepIndex)){
+        state.starred.add(state.stepIndex);
+        state.totalStars += 1;
+      }
+      renderDots();
+    } else {
+      state.lastCheckFailed = true;
+      state.feedbackMsg = pick(FAIL_LINES);
+    }
+    renderGame();
+  };
+
+  const nextBtn = document.getElementById("nextBtn");
+  if(nextBtn) nextBtn.onclick = () => {
+    state.stepIndex += 1;
+    resetForStep();
+    renderDots();
+    renderGame();
+  };
+}
+
+renderDots();
+renderGame();
+</script>
+</body>
+</html>

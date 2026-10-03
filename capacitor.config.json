@@ -1,0 +1,9 @@
+{
+  "appId": "ir.matinmovafagh.flexcafe",
+  "appName": "کافه فلکس",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
